@@ -1,10 +1,14 @@
 defmodule Derp.TTY do
   use GenEvent.Behaviour
 
-  defp header(title, pid) do
-    use DateTime
+  defp pad(n) when n < 10, do: "0#{n}"
+  defp pad(n),             do: integer_to_binary(n)
 
-    "== #{title} for #{inspect pid} at #{DateTime.now |> DateTime.format %t"Y-m-d H:i:s"f} ==\r\n"
+  defp header(title, pid) do
+    case :calendar.now_to_local_time(:erlang.now) do
+      { { year, month, day }, { hour, minute, second } } ->
+        "== #{title} for #{inspect pid} at #{year}-#{month |> pad}-#{day |> pad} #{hour |> pad}:#{minute |> pad}:#{second |> pad} ==\r\n"
+    end
   end
 
   defp print(leader, color, header, format, data) do
