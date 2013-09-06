@@ -43,6 +43,8 @@ defmodule Derp.TTY do
 
   def handle_event({ :error, leader, { _pid, @gen_server, data } }, _state) do
     print :gen_server, leader, data
+
+    { :ok, _state }
   end
 
   def handle_event({ :error, leader, { pid, format, data } }, _state) do
