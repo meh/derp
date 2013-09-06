@@ -2,10 +2,12 @@ defmodule Derp.TTY do
   use GenEvent.Behaviour
 
   def pid(name) when name |> is_pid do
-    if registered = :erlang.process_info(self)[:registered_name] do
-      registered |> to_string
-    else
-      name |> inspect pretty: true
+    case Process.info(name, :registered_name) do
+      { :registered_name, name } ->
+        name |> to_string
+
+      _ ->
+        name |> inspect pretty: true
     end
   end
 
