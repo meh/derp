@@ -1,13 +1,41 @@
 defmodule Derp.TTY do
   use GenEvent.Behaviour
 
+  def pid(name) when name |> is_pid do
+    if registered = :erlang.process_info(self)[:registered_name] do
+      registered |> to_string
+    else
+      name |> inspect pretty: true
+    end
+  end
+
+  def pid(name) when name |> is_atom do
+    "Elixir." <> name = atom_to_binary(name)
+
+    name
+  end
+
+  def pid(name) when name |> is_list do
+    ['Elixir.' | name] = name
+
+    name |> String.from_char_list!
+  end
+
+  defp header(title) do
+    "== #{title} at #{date} ==\r\n"
+  end
+
+  defp header(title, pid) do
+    "== #{title} for #{pid(pid)} at #{date} ==\r\n"
+  end
+
   defp pad(n) when n < 10, do: "0#{n}"
   defp pad(n),             do: integer_to_binary(n)
 
-  defp header(title, pid) do
+  defp date do
     case :calendar.now_to_local_time(:erlang.now) do
       { { year, month, day }, { hour, minute, second } } ->
-        "== #{title} for #{inspect pid} at #{year}-#{month |> pad}-#{day |> pad} #{hour |> pad}:#{minute |> pad}:#{second |> pad} ==\r\n"
+        "#{year}-#{month |> pad}-#{day |> pad} #{hour |> pad}:#{minute |> pad}:#{second |> pad}"
     end
   end
 
@@ -36,6 +64,15 @@ defmodule Derp.TTY do
     IO.puts leader, IO.ANSI.escape("%{red}" <> header <> last_message <> state <> reason, leader)
   end
 
+  defp print(:gen_event, leader, [handler, name, last, state, reason]) do
+    header       = header("Generic Event Handler Error for #{pid(handler)} installed in #{name}")
+    last_message = "-- Last Event: #{inspect last, pretty: true}\r\n"
+    state        = "-- State: #{inspect state, pretty: true}\r\n"
+    reason       = "-- Reason: #{inspect reason, pretty: true}\r\n"
+
+    IO.puts leader, IO.ANSI.escape("%{red}" <> header <> last_message <> state <> reason, leader)
+  end
+
   @gen_server "** Generic server ~p terminating \n" <>
               "** Last message in was ~p~n" <>
               "** When Server state == ~p~n" <>
@@ -43,6 +80,18 @@ defmodule Derp.TTY do
 
   def handle_event({ :error, leader, { _pid, @gen_server, data } }, _state) do
     print :gen_server, leader, data
+
+    { :ok, _state }
+  end
+
+  @gen_event "** gen_event handler ~p crashed.~n" <>
+             "** Was installed in ~p~n" <>
+             "** Last event was: ~p~n" <>
+             "** When handler state == ~p~n" <>
+             "** Reason == ~p~n" |> String.to_char_list!
+
+  def handle_event({ :error, leader, { _pid, @gen_event, data } }, _state) do
+    print :gen_event, leader, data
 
     { :ok, _state }
   end
