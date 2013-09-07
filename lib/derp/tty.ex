@@ -1,5 +1,15 @@
 defmodule Derp.TTY do
+  import Kernel, except: [inspect: 1]
+
   use GenEvent.Behaviour
+
+  defp inspect(value) do
+    try do
+      Kernel.inspect(value, pretty: true)
+    rescue _ ->
+      :io_lib.format('~p', [value]) |> String.from_char_list!
+    end
+  end
 
   def pid(name) when name |> is_pid do
     case Process.info(name, :registered_name) do
@@ -7,14 +17,18 @@ defmodule Derp.TTY do
         name |> to_string
 
       _ ->
-        name |> inspect pretty: true
+        name |> inspect
     end
   end
 
   def pid(name) when name |> is_atom do
-    "Elixir." <> name = atom_to_binary(name)
+    case atom_to_binary(name) do
+      "Elixir." <> name ->
+        name
 
-    name
+      name ->
+        name
+    end
   end
 
   def pid(name) when name |> is_list do
@@ -51,7 +65,7 @@ defmodule Derp.TTY do
     report = if report |> is_binary do
       report
     else
-      inspect(report, pretty: true)
+      inspect report
     end
 
     IO.puts leader, IO.ANSI.escape("%{#{color}}" <> header <> report, leader)
@@ -59,18 +73,18 @@ defmodule Derp.TTY do
 
   defp print(:gen_server, leader, [name, msg, state, reason]) do
     header       = header("Generic Server Error", name)
-    last_message = "-- Last Message: #{inspect msg, pretty: true}\r\n"
-    state        = "-- State: #{inspect state, pretty: true}\r\n"
-    reason       = "-- Reason: #{inspect reason, pretty: true}\r\n"
+    last_message = "-- Last Message: #{inspect msg}\r\n"
+    state        = "-- State: #{inspect state}\r\n"
+    reason       = "-- Reason: #{inspect reason}\r\n"
 
     IO.puts leader, IO.ANSI.escape("%{red}" <> header <> last_message <> state <> reason, leader)
   end
 
   defp print(:gen_event, leader, [handler, name, last, state, reason]) do
     header       = header("Generic Event Handler Error for #{pid(handler)} installed in #{name}")
-    last_message = "-- Last Event: #{inspect last, pretty: true}\r\n"
-    state        = "-- State: #{inspect state, pretty: true}\r\n"
-    reason       = "-- Reason: #{inspect reason, pretty: true}\r\n"
+    last_message = "-- Last Event: #{inspect last}\r\n"
+    state        = "-- State: #{inspect state}\r\n"
+    reason       = "-- Reason: #{inspect reason}\r\n"
 
     IO.puts leader, IO.ANSI.escape("%{red}" <> header <> last_message <> state <> reason, leader)
   end
