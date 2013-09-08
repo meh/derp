@@ -85,7 +85,7 @@ defmodule Derp.TTY do
   end
 
   defp print(:gen_event, leader, [handler, name, last, state, reason]) do
-    header       = header("Generic Event Handler Error from #{pid(handler)} installed in #{name}")
+    header       = header("Generic Event Handler Error from #{pid(handler)} installed in #{pid(name)}")
     last_message = "-- Last Event: #{inspect last}\r\n"
     state        = "-- State: #{inspect state}\r\n"
     reason       = "-- Reason: #{inspect reason}\r\n"
