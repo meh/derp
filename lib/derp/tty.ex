@@ -42,7 +42,7 @@ defmodule Derp.TTY do
   end
 
   defp header(title, pid) do
-    "== #{title} for #{pid(pid)} at #{date} ==\r\n"
+    "== #{title} from #{pid(pid)} at #{date} ==\r\n"
   end
 
   defp pad(n) when n < 10, do: "0#{n}"
@@ -81,7 +81,7 @@ defmodule Derp.TTY do
   end
 
   defp print(:gen_event, leader, [handler, name, last, state, reason]) do
-    header       = header("Generic Event Handler Error for #{pid(handler)} installed in #{name}")
+    header       = header("Generic Event Handler Error from #{pid(handler)} installed in #{name}")
     last_message = "-- Last Event: #{inspect last}\r\n"
     state        = "-- State: #{inspect state}\r\n"
     reason       = "-- Reason: #{inspect reason}\r\n"
