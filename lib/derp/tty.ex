@@ -162,7 +162,7 @@ defmodule Derp.TTY do
   end
 
   def handle_event({ :info_msg, leader, { pid, format, data } }, _state) do
-    print leader, :green, header("Warning", pid), format, data
+    print leader, :green, header("Info", pid), format, data
 
     { :ok, _state }
   end
