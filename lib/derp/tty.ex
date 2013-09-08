@@ -32,9 +32,13 @@ defmodule Derp.TTY do
   end
 
   def pid(name) when name |> is_list do
-    ['Elixir.' | name] = name
+    case name do
+      'Elixir.' ++ name ->
+        name |> String.from_char_list!
 
-    name |> String.from_char_list!
+      name ->
+        name |> String.from_char_list!
+    end
   end
 
   defp header(title) do
@@ -108,6 +112,21 @@ defmodule Derp.TTY do
 
   def handle_event({ :error, leader, { _pid, @gen_event, data } }, _state) do
     print :gen_event, leader, data
+
+    { :ok, _state }
+  end
+
+  def handle_event({ :error, leader, { pid, '~s~n', [error] } }, _state) do
+    case error do
+      'Error in process <' ++ _ ->
+        [_, pid]   = Regex.run %r/<(.*?)>/, error
+        [_, value] = Regex.run %r/exit value: (.*)$/, error
+
+        print leader, :red, header("Error from #PID<#{pid}>"), String.from_char_list!(value)
+
+      _ ->
+        print leader, :red, header("Error", pid), '~s~n', [error]
+    end
 
     { :ok, _state }
   end
