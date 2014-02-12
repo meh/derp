@@ -119,8 +119,8 @@ defmodule Derp.TTY do
   def handle_event({ :error, leader, { pid, '~s~n', [error] } }, _state) do
     case error do
       'Error in process <' ++ _ ->
-        [_, pid]   = Regex.run %r/<(.*?)>/, String.from_char_list!(error)
-        [_, value] = Regex.run %r/exit value: (.*)$/, String.from_char_list!(error)
+        [_, pid]   = Regex.run ~r/<(.*?)>/, String.from_char_list!(error)
+        [_, value] = Regex.run ~r/exit value: (.*)$/, String.from_char_list!(error)
 
         print leader, :red, header("Error from #PID<#{pid}>"), String.from_char_list!(value)
 
